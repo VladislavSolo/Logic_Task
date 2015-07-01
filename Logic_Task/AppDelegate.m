@@ -8,7 +8,16 @@
 
 #import "AppDelegate.h"
 
+static long limit = 100000000;
+static long summ = 0;
+
 @interface AppDelegate ()
+
+{
+    NSArray* array;
+    NSMutableArray* fArray;
+    NSMutableArray* sArray;
+}
 
 @end
 
@@ -16,8 +25,125 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
+    
+    array = [NSMutableArray arrayWithObjects:
+             @18897109, @12828837, @9461105, @6371773, @5965343, @5946800, @5582170,@5564635, @5268860, @4552402,
+             @4335391, @4296250, @4224851, @4192887, @3439809, @3279833, @3095313, @2812896, @2783243, @2710489,
+             @2543482, @2356285, @2226009, @2149127, @2142508, @2134411,nil];
+    
+    //[self firstAlgorithm];
+    [self secondAlgorithm];
+    
     return YES;
+}
+
+- (void)firstAlgorithm {                                // Сложность алгоритма = O(N)
+                                                        // Время выполнения ~ 0.00026 second
+    long answer = 0;                                    // Реализация ~ 20 min
+    
+    NSArray* sortArray = [array sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        
+        NSNumber* a = (NSNumber *)obj1;
+        NSNumber* b = (NSNumber *)obj2;
+        
+        return ![a compare:b];
+    }];
+    
+    for (NSNumber* number in sortArray) {
+        
+        if (answer <= limit && [number integerValue] <= (limit - answer)) {
+            
+            answer += [number integerValue];
+        }
+    }
+    
+    NSLog(@"%ld", answer);
+    
+}
+
+- (void)secondAlgorithm {                               // Сложность алгоритма = O((N/2)^3)
+                                                        // Время выполнения ~ 0.002197 second
+    NSMutableArray* firstArray = [NSMutableArray array];// Реализация ~ 1h
+    NSMutableArray* secondArray = [NSMutableArray array];
+
+    
+    for (long i = 0; i < array.count/2; i++) {
+        
+        [firstArray addObject:[array objectAtIndex:i]];
+    }
+    
+    for (long i = array.count/2; i < array.count; i++) {
+        
+        [secondArray addObject:[array objectAtIndex:i]];
+    }
+    
+    NSArray* fisrtSortArray = [firstArray sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        
+        NSNumber* a = (NSNumber *)obj1;
+        NSNumber* b = (NSNumber *)obj2;
+        
+        return ![a compare:b];
+        
+    }];
+    
+    NSArray* secondSortArray = [secondArray sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        
+        NSNumber* a = (NSNumber *)obj1;
+        NSNumber* b = (NSNumber *)obj2;
+        
+        return [a compare:b];
+        
+    }];
+    
+    fArray = [NSMutableArray array];
+    sArray = [NSMutableArray array];
+
+    [fArray addObjectsFromArray:fisrtSortArray];
+    [sArray addObjectsFromArray:secondSortArray];
+    
+    [self recursion];
+    
+}
+
+- (void)recursion {
+    
+    long i, j, x = 0, y = 0;
+    
+    for (i = 0; i < sArray.count; i ++) {
+        
+        for (j = 0; j < fArray.count; j ++) {
+            
+            long s = [sArray[j] integerValue] + [fArray[i] integerValue];
+            
+            if (s < limit && s <= (limit - summ)) {
+                
+                summ += [sArray[j] integerValue];
+                summ += [fArray[i] integerValue];
+                
+                x = i;
+                y = j;
+                
+                j = fArray.count;
+            }
+        }
+        
+        i = sArray.count;
+    }
+    
+    if (fArray.count < 1 || sArray.count < 1) {
+        
+        NSLog(@"%ld", summ);
+        
+    } else {
+        
+        NSLog(@"X - %ld, Y - %ld\n",x, y);
+        
+        [fArray removeObject:fArray[x]];
+        [sArray removeObject:sArray[y]];
+        
+        [self recursion];
+    }
+    
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
